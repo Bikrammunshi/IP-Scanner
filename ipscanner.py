@@ -64,6 +64,7 @@ def ping_hosts(network_addr, first_host, last_host):
     return opn_hosts
 
 
+
 def main():
     print(""" 
      ___ ____  ____
@@ -78,39 +79,44 @@ def main():
     """)
     print("Class C IP addresses accepted.")
 
-    choice = input("Will you be working with a single IP address? Enter 'y' to say yes: ")
-    if choice.lower() == 'y':
-        target = input("Enter the IP address or the host name: ")
-        try:
-            first_ip = last_ip = socket.gethostbyname(target)
-        except socket.gaierror:
-            print("Host not identified or might be down.")
-            return
-    else:
-        first_ip = input("Enter the first IP address: ")
-        last_ip = input("Enter the last IP address: ")
-
-    start_time = datetime.now()
-    print("\nStarting process...")
-    print(f"Start time: {start_time}\n")
-
     try:
-        network_addr, first_host, last_host = get_host_address_range((first_ip, last_ip))
-    except ValueError as ve:
-        print(ve)
+        choice = input("Will you be working with a single IP address? Enter 'y' to say yes: ")
+        if choice.lower() == 'y':
+            target = input("Enter the IP address or the host name: ")
+            try:
+                first_ip = last_ip = socket.gethostbyname(target)
+            except socket.gaierror:
+                print("Host not identified or might be down.")
+                return
+        else:
+            first_ip = input("Enter the first IP address: ")
+            last_ip = input("Enter the last IP address: ")
+
+        start_time = datetime.now()
+        print("\nStarting process...")
+        print(f"Start time: {start_time}\n")
+
+        try:
+            network_addr, first_host, last_host = get_host_address_range((first_ip, last_ip))
+        except ValueError as ve:
+            print(ve)
+            return
+
+        opn_hosts = ping_hosts(network_addr, first_host, last_host)
+        print(f"{len(opn_hosts)} hosts up out of {int(last_host) - int(first_host) + 1}")
+
+        for ip in opn_hosts:
+            print(f"\nScanning open ports on {ip}...")
+            scanning_ports(ip, delay=100000, max_threads=1000000)  # Adjust max_threads based on your system capacity
+
+        end_time = datetime.now()
+        print("\nCompleted Process...")
+        print(f"End time: {end_time}")
+        print(f"Total time: {end_time - start_time}")
+    
+    except KeyboardInterrupt:
+        print("\nProcess interrupted by the user. Exiting gracefully...")
         return
-
-    opn_hosts = ping_hosts(network_addr, first_host, last_host)
-    print(f"{len(opn_hosts)} hosts up out of {int(last_host) - int(first_host) + 1}")
-
-    for ip in opn_hosts:
-        print(f"\nScanning open ports on {ip}...")
-        scanning_ports(ip, delay=100000, max_threads=1000000)  # Adjust max_threads based on your system capacity
-
-    end_time = datetime.now()
-    print("\nCompleted Process...")
-    print(f"End time: {end_time}")
-    print(f"Total time: {end_time - start_time}")
 
 
 if __name__ == "__main__":
